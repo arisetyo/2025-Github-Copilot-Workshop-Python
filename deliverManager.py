@@ -6,69 +6,69 @@ from enum import Enum
 
 
 class EventArgs:
-    """イベント引数の基底クラス"""
+    """Base class for event arguments"""
     pass
 
 
 class Event:
-    """C#のeventに相当するクラス"""
+    """Equivalent to C# event class"""
     
     def __init__(self):
         self._handlers: List[Callable] = []
     
     def add_handler(self, handler: Callable):
-        """イベントハンドラーを追加"""
+        """Add event handler"""
         if handler not in self._handlers:
             self._handlers.append(handler)
     
     def remove_handler(self, handler: Callable):
-        """イベントハンドラーを削除"""
+        """Remove event handler"""
         if handler in self._handlers:
             self._handlers.remove(handler)
     
     def invoke(self, sender, args: EventArgs = None):
-        """イベントを発火"""
+        """Invoke event"""
         for handler in self._handlers:
             handler(sender, args or EventArgs())
 
 
 @dataclass
 class KitchenObjectSO:
-    """キッチンオブジェクトのデータクラス"""
+    """Data class for kitchen objects"""
     name: str
     object_id: int
 
 
 @dataclass
 class RecipeSO:
-    """レシピのデータクラス"""
+    """Data class for recipes"""
     name: str
     kitchen_object_so_list: List[KitchenObjectSO] = field(default_factory=list)
 
 
 @dataclass
 class RecipeListSO:
-    """レシピリストのデータクラス"""
+    """Data class for recipe list"""
     recipe_so_list: List[RecipeSO] = field(default_factory=list)
 
 
 class PlateKitchenObject:
-    """皿のキッチンオブジェクト"""
+    """Plate kitchen object"""
     
     def __init__(self):
         self._kitchen_object_so_list: List[KitchenObjectSO] = []
     
     def add_kitchen_object(self, kitchen_object: KitchenObjectSO):
-        """キッチンオブジェクトを追加"""
+        """Add kitchen object"""
         self._kitchen_object_so_list.append(kitchen_object)
     
     def get_kitchen_object_so_list(self) -> List[KitchenObjectSO]:
-        """キッチンオブジェクトリストを取得"""
+        """Get kitchen object list"""
         return self._kitchen_object_so_list.copy()
 
 
 class KitchenGameManager:
-    """キッチンゲームマネージャー（Singleton）"""
+    """Kitchen game manager (Singleton)"""
     
     _instance: Optional['KitchenGameManager'] = None
     
@@ -77,42 +77,42 @@ class KitchenGameManager:
     
     @classmethod
     def get_instance(cls) -> 'KitchenGameManager':
-        """Singletonインスタンスを取得"""
+        """Get singleton instance"""
         if cls._instance is None:
             cls._instance = cls()
         return cls._instance
     
     def is_game_playing(self) -> bool:
-        """ゲームが進行中かどうか"""
+        """Check if the game is in progress"""
         return self._is_game_playing
     
     def start_game(self):
-        """ゲーム開始"""
+        """Start the game"""
         self._is_game_playing = True
     
     def stop_game(self):
-        """ゲーム停止"""
+        """Stop the game"""
         self._is_game_playing = False
 
 
 class DeliveryManager:
     def get_recipe_by_name(self, user_input):
         query = f"SELECT * FROM recipes WHERE name = '{user_input}'"
-        print(f"実行クエリ: {query}")
+        print(f"Executing query: {query}")
         return query
     
-    """配達管理クラス（Python版）"""
+    """Delivery management class (Python version)"""
     
     _instance: Optional['DeliveryManager'] = None
     
     def __init__(self, recipe_list_so: RecipeListSO):
-        # イベント定義
+        # Event definitions
         self.on_recipe_spawned = Event()
         self.on_recipe_completed = Event()
         self.on_recipe_success = Event()
         self.on_recipe_failed = Event()
         
-        # プライベート変数
+        # Private variables
         self._recipe_list_so = recipe_list_so
         self._waiting_recipe_so_list: List[RecipeSO] = []
         self._spawn_recipe_timer = 0.0
@@ -123,15 +123,15 @@ class DeliveryManager:
     
     @classmethod
     def get_instance(cls, recipe_list_so: RecipeListSO = None) -> 'DeliveryManager':
-        """Singletonインスタンスを取得"""
+        """Get singleton instance"""
         if cls._instance is None:
             if recipe_list_so is None:
-                raise ValueError("初回作成時にはrecipe_list_soが必要です")
+                raise ValueError("recipe_list_so is required for first creation")
             cls._instance = cls(recipe_list_so)
         return cls._instance
     
     def update(self):
-        """フレーム更新処理（UnityのUpdate相当）"""
+        """Frame update process (equivalent to Unity's Update)"""
         current_time = time.time()
         delta_time = current_time - self._last_update_time
         self._last_update_time = current_time
@@ -145,28 +145,28 @@ class DeliveryManager:
             if (kitchen_game_manager.is_game_playing() and 
                 len(self._waiting_recipe_so_list) < self._waiting_recipes_max):
                 
-                # ランダムにレシピを選択
+                # Select a recipe randomly
                 waiting_recipe_so = random.choice(self._recipe_list_so.recipe_so_list)
                 self._waiting_recipe_so_list.append(waiting_recipe_so)
                 
-                # イベント発火
+                # Fire event
                 self.on_recipe_spawned.invoke(self)
     
     def deliver_recipe(self, plate_kitchen_object: PlateKitchenObject):
-        """レシピの材料と皿の材料が一致しているかどうかを確認する"""
+        """Check if the recipe ingredients match the plate ingredients"""
         
         for i, waiting_recipe_so in enumerate(self._waiting_recipe_so_list):
             plate_ingredients = plate_kitchen_object.get_kitchen_object_so_list()
             
-            # 材料数が一致するかチェック
+            # Check if the number of ingredients matches
             if len(waiting_recipe_so.kitchen_object_so_list) == len(plate_ingredients):
                 plate_contents_matches_recipe = True
                 
-                # レシピの各材料をチェック
+                # Check each ingredient in the recipe
                 for recipe_kitchen_object_so in waiting_recipe_so.kitchen_object_so_list:
                     ingredient_found = False
                     
-                    # 皿の材料と照合
+                    # Compare with plate ingredients
                     for plate_kitchen_object_so in plate_ingredients:
                         if plate_kitchen_object_so == recipe_kitchen_object_so:
                             ingredient_found = True
@@ -176,79 +176,79 @@ class DeliveryManager:
                         plate_contents_matches_recipe = False
                         break
                 
-                # 材料が完全に一致した場合
+                # If all ingredients match
                 if plate_contents_matches_recipe:
                     self._successful_recipes_amount += 1
                     self._waiting_recipe_so_list.pop(i)
                     
-                    # 成功イベント発火
+                    # Fire success events
                     self.on_recipe_completed.invoke(self)
                     self.on_recipe_success.invoke(self)
                     return
         
-        # 一致するレシピが見つからなかった場合
+    # If no matching recipe is found
         self.on_recipe_failed.invoke(self)
     
     def get_waiting_recipe_so_list(self) -> List[RecipeSO]:
-        """待機中のレシピリストを取得"""
+        """Get list of waiting recipes"""
         return self._waiting_recipe_so_list.copy()
     
     def get_successful_recipes_amount(self) -> int:
-        """成功したレシピ数を取得"""
+        """Get number of successful recipes"""
         return self._successful_recipes_amount
 
 
-# 使用例
+# Example usage
 if __name__ == "__main__":
-    # サンプルデータ作成
+    # Create sample data
     tomato = KitchenObjectSO("Tomato", 1)
     lettuce = KitchenObjectSO("Lettuce", 2)
     bread = KitchenObjectSO("Bread", 3)
     
-    # サンプルレシピ
+    # Sample recipes
     sandwich_recipe = RecipeSO("Sandwich", [bread, lettuce, tomato])
     salad_recipe = RecipeSO("Salad", [lettuce, tomato])
     
     recipe_list = RecipeListSO([sandwich_recipe, salad_recipe])
     
-    # ゲームマネージャーとデリバリーマネージャーを初期化
+    # Initialize game manager and delivery manager
     game_manager = KitchenGameManager.get_instance()
     game_manager.start_game()
     
     delivery_manager = DeliveryManager.get_instance(recipe_list)
     
-    # イベントハンドラーの設定
+    # Set event handlers
     def on_recipe_spawned(sender, args):
-        print("新しいレシピが生成されました！")
+        print("A new recipe has been generated!")
     
     def on_recipe_success(sender, args):
-        print("レシピ配達成功！")
+        print("Recipe delivery successful!")
     
     def on_recipe_failed(sender, args):
-        print("レシピ配達失敗...")
+        print("Recipe delivery failed...")
     
     delivery_manager.on_recipe_spawned.add_handler(on_recipe_spawned)
     delivery_manager.on_recipe_success.add_handler(on_recipe_success)
     delivery_manager.on_recipe_failed.add_handler(on_recipe_failed)
     
-    # サンプル実行
-    print("ゲーム開始...")
+    # Sample execution
+    print("Game started...")
     
-    # 5秒間更新処理を実行
+    # Run update process for 5 seconds
     start_time = time.time()
     while time.time() - start_time < 5:
         delivery_manager.update()
-        time.sleep(0.1)  # 100ms間隔で更新
+        time.sleep(0.1)  # Update every 100ms
     
-    print(f"待機中のレシピ数: {len(delivery_manager.get_waiting_recipe_so_list())}")
+    print(f"Number of waiting recipes: {len(delivery_manager.get_waiting_recipe_so_list())}")
     
-    # サンプル配達テスト
+    # Sample delivery test
     plate = PlateKitchenObject()
     plate.add_kitchen_object(bread)
     plate.add_kitchen_object(lettuce)
     plate.add_kitchen_object(tomato)
     
-    print("サンドイッチを配達...")
+    print("Delivering sandwich...")
     delivery_manager.deliver_recipe(plate)
     
-    print(f"成功したレシピ数: {delivery_manager.get_successful_recipes_amount()}")
+    print(f"Number of successful recipes: {delivery_manager.get_successful_recipes_amount()}")
