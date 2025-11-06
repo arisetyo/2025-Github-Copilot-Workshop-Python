@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Pomodoro Timer</h1>
+        </header>
+        <main>
+            <div id="timer-section">
+                <div id="timer-status">In Progress</div>
+                <div id="progress-bar"></div>
+                <div id="timer-display">25:00</div>
+                <div class="button-row">
+                    <button id="start-btn">Start</button>
+                    <button id="reset-btn">Reset</button>
+                </div>
+            </div>
+            <section id="progress-section">
+                <h2>Today's Progress</h2>
+                <div class="progress-row">
+                    <div class="progress-item">
+                        <span id="sessions-completed">0</span>
+                        <div class="progress-label">Completed</div>
+                    </div>
+                    <div class="progress-item">
+                        <span id="focus-time">0 min</span>
+                        <div class="progress-label">Focus Time</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <script src="/static/js/timer.js"></script>
+</body>
+</html>
