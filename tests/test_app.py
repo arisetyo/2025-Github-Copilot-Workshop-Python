@@ -7,11 +7,17 @@ from app import app
 
 @pytest.fixture
 def client():
+    """
+    Setup Flask test client
+    """
     app.config['TESTING'] = True
     with app.test_client() as client:
         yield client
 
 def test_index_route(client):
+    """
+    Test the index route returns 200 and contains expected content
+    """
     response = client.get('/')
     assert response.status_code == 200
     assert b'Pomodoro Timer' in response.data

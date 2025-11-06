@@ -8,10 +8,17 @@ Session(app)
 
 @app.route('/')
 def index():
+    """Render the main Pomodoro timer page."""
     return render_template('index.html')
+
 
 @app.route('/progress', methods=['GET', 'POST'])
 def progress():
+    """
+    Get or update the user's Pomodoro progress.
+    On GET: return the number of completed sessions and total focus time.
+    On POST: update the number of completed sessions and total focus time.
+    """
     if request.method == 'POST':
         data = request.get_json()
         sessions_completed = data.get('sessionsCompleted', 0)
@@ -29,6 +36,7 @@ def progress():
             'sessionsCompleted': sessions_completed,
             'focusTime': focus_time
         })
+
 
 if __name__ == '__main__':
     app.run(debug=True)
