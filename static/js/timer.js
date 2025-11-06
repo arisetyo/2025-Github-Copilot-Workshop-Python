@@ -29,6 +29,9 @@ let breakDuration = 5; // in minutes
 let currentTheme = 'light';
 let soundEnabled = true;
 
+// Audio context for sound effects (reusable)
+let audioContext = null;
+
 /**
  * Initialize the timer and UI elements
  * - Set up event listeners
@@ -245,8 +248,11 @@ function saveSettingsToLocalStorage() {
  * Load settings from localStorage
  */
 function loadSettingsFromLocalStorage() {
-    workDuration = parseInt(localStorage.getItem('pomodoro_workDuration')) || 25;
-    breakDuration = parseInt(localStorage.getItem('pomodoro_breakDuration')) || 5;
+    const savedWorkDuration = parseInt(localStorage.getItem('pomodoro_workDuration'));
+    const savedBreakDuration = parseInt(localStorage.getItem('pomodoro_breakDuration'));
+    
+    workDuration = (!isNaN(savedWorkDuration) && savedWorkDuration > 0) ? savedWorkDuration : 25;
+    breakDuration = (!isNaN(savedBreakDuration) && savedBreakDuration > 0) ? savedBreakDuration : 5;
     currentTheme = localStorage.getItem('pomodoro_theme') || 'light';
     soundEnabled = localStorage.getItem('pomodoro_soundEnabled') !== 'false';
     
@@ -270,8 +276,11 @@ function loadSettingsFromLocalStorage() {
 function playSound(soundType) {
     if (!soundEnabled) return;
     
-    // Create audio context for simple beep sounds
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Initialize audio context if not already created
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
     
