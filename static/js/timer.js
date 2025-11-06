@@ -251,9 +251,19 @@ function loadSettingsFromLocalStorage() {
     const savedWorkDuration = parseInt(localStorage.getItem('pomodoro_workDuration'));
     const savedBreakDuration = parseInt(localStorage.getItem('pomodoro_breakDuration'));
     
-    workDuration = (!isNaN(savedWorkDuration) && savedWorkDuration > 0) ? savedWorkDuration : 25;
-    breakDuration = (!isNaN(savedBreakDuration) && savedBreakDuration > 0) ? savedBreakDuration : 5;
-    currentTheme = localStorage.getItem('pomodoro_theme') || 'light';
+    // Valid work duration options: 15, 25, 35, 45
+    const validWorkDurations = [15, 25, 35, 45];
+    workDuration = validWorkDurations.includes(savedWorkDuration) ? savedWorkDuration : 25;
+    
+    // Valid break duration options: 5, 10, 15
+    const validBreakDurations = [5, 10, 15];
+    breakDuration = validBreakDurations.includes(savedBreakDuration) ? savedBreakDuration : 5;
+    
+    // Valid theme options: light, dark, focus
+    const savedTheme = localStorage.getItem('pomodoro_theme');
+    const validThemes = ['light', 'dark', 'focus'];
+    currentTheme = validThemes.includes(savedTheme) ? savedTheme : 'light';
+    
     soundEnabled = localStorage.getItem('pomodoro_soundEnabled') !== 'false';
     
     // Update UI to reflect loaded settings
@@ -276,29 +286,34 @@ function loadSettingsFromLocalStorage() {
 function playSound(soundType) {
     if (!soundEnabled) return;
     
-    // Initialize audio context if not already created
-    if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    try {
+        // Initialize audio context if not already created
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Different frequencies for different events
+        if (soundType === 'start') {
+            oscillator.frequency.value = 440; // A4
+        } else if (soundType === 'end') {
+            oscillator.frequency.value = 880; // A5
+        } else if (soundType === 'tick') {
+            oscillator.frequency.value = 220; // A3
+        }
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error) {
+        // Gracefully handle audio context errors (e.g., browser doesn't support Web Audio API)
+        console.warn('Audio playback failed:', error);
     }
-    
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    // Different frequencies for different events
-    if (soundType === 'start') {
-        oscillator.frequency.value = 440; // A4
-    } else if (soundType === 'end') {
-        oscillator.frequency.value = 880; // A5
-    } else if (soundType === 'tick') {
-        oscillator.frequency.value = 220; // A3
-    }
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
 }
