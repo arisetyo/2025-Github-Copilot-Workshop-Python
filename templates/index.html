@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
+    <canvas id="particles-canvas"></canvas>
     <div class="container">
         <header>
             <h1>Pomodoro Timer</h1>
@@ -14,8 +15,13 @@
         <main>
             <div id="timer-section">
                 <div id="timer-status">In Progress</div>
-                <div id="progress-bar"></div>
-                <div id="timer-display">25:00</div>
+                <div id="progress-bar-container">
+                    <svg id="progress-bar" viewBox="0 0 200 200">
+                        <circle class="progress-background" cx="100" cy="100" r="90"></circle>
+                        <circle class="progress-fill" cx="100" cy="100" r="90"></circle>
+                    </svg>
+                    <div id="timer-display">25:00</div>
+                </div>
                 <div class="button-row">
                     <button id="start-btn">Start</button>
                     <button id="reset-btn">Reset</button>
