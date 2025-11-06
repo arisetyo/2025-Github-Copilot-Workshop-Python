@@ -12,6 +12,42 @@
             <h1>Pomodoro Timer</h1>
         </header>
         <main>
+            <section id="settings-section">
+                <h2>Settings</h2>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="work-duration">Work Duration:</label>
+                        <select id="work-duration">
+                            <option value="15">15 min</option>
+                            <option value="25" selected>25 min</option>
+                            <option value="35">35 min</option>
+                            <option value="45">45 min</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="break-duration">Break Duration:</label>
+                        <select id="break-duration">
+                            <option value="5" selected>5 min</option>
+                            <option value="10">10 min</option>
+                            <option value="15">15 min</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label for="theme-selector">Theme:</label>
+                        <select id="theme-selector">
+                            <option value="light" selected>Light</option>
+                            <option value="dark">Dark</option>
+                            <option value="focus">Focus</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>
+                            <input type="checkbox" id="sound-enabled" checked>
+                            Enable Sounds
+                        </label>
+                    </div>
+                </div>
+            </section>
             <div id="timer-section">
                 <div id="timer-status">In Progress</div>
                 <div id="progress-bar"></div>
