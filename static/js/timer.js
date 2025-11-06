@@ -233,7 +233,7 @@ async function loadGamificationStats() {
         document.getElementById('level-display').textContent = `Level ${stats.level}`;
         
         // Update streak display
-        const streakText = stats.current_streak === 1 ? 'day' : 'days';
+        const streakText = stats.current_streak !== 1 ? 'days' : 'day';
         document.getElementById('streak-display').textContent = `🔥 ${stats.current_streak} ${streakText} streak`;
         
         // Update XP bar
@@ -387,7 +387,7 @@ function renderChart(canvasId, data, title) {
     }
     
     // Calculate max value for scaling
-    const maxValue = Math.max(...data.map(d => d.value), 1);
+    const maxValue = data.length > 0 ? Math.max(...data.map(d => d.value), 1) : 1;
     
     // Chart dimensions
     const padding = 40;
