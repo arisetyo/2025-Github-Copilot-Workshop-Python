@@ -9,4 +9,6 @@ We are using this repository for Github Copilot workshop 2025.
 This repo was forked from: [2025-Github-Copilot-Workshop-Python](https://github.com/moulongzhang/2025-Github-Copilot-Workshop-Python)
 
 That repo is for the workshop material below:
-ワークショップの手順：https://moulongzhang.github.io/2025-Github-Copilot-Workshop/github-copilot-workshop/#0
+- https://apacfsteam.github.io/2025-Github-Copilot-Workshop-long-eng/github-copilot-workshop/index.html
+- ワークショップの手順：https://moulongzhang.github.io/2025-Github-Copilot-Workshop/github-copilot-workshop/#0
+
