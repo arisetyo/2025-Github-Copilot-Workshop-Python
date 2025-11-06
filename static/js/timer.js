@@ -28,6 +28,10 @@ let particles = [];
 let canvas, ctx;
 const maxParticles = 50;
 
+// Progress bar constants
+const PROGRESS_RADIUS = 90;
+const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RADIUS;
+
 /**
  * Initialize the timer and UI elements
  * - Set up event listeners
@@ -107,8 +111,7 @@ function updateTimerDisplay() {
 function updateProgressBar() {
     const progressBar = document.querySelector('.progress-fill');
     const percent = timerRemaining / timerDuration;
-    const circumference = 2 * Math.PI * 90; // radius = 90
-    const offset = circumference * (1 - percent);
+    const offset = PROGRESS_CIRCUMFERENCE * (1 - percent);
     
     progressBar.style.strokeDashoffset = offset;
     
@@ -243,13 +246,23 @@ function handleResetButton() {
 function initializeParticles() {
     canvas = document.getElementById('particles-canvas');
     ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    
+    // Set canvas size accounting for device pixel ratio for crisp rendering
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * dpr;
+    canvas.height = window.innerHeight * dpr;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    ctx.scale(dpr, dpr);
     
     // Resize canvas on window resize
     window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = window.innerWidth * dpr;
+        canvas.height = window.innerHeight * dpr;
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        ctx.scale(dpr, dpr);
     });
 }
 
@@ -258,8 +271,8 @@ function initializeParticles() {
  */
 class Particle {
     constructor() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
+        this.x = Math.random() * window.innerWidth;
+        this.y = Math.random() * window.innerHeight;
         this.vx = (Math.random() - 0.5) * 0.5;
         this.vy = (Math.random() - 0.5) * 0.5;
         this.radius = Math.random() * 2 + 1;
@@ -271,10 +284,10 @@ class Particle {
         this.y += this.vy;
         
         // Wrap around edges
-        if (this.x < 0) this.x = canvas.width;
-        if (this.x > canvas.width) this.x = 0;
-        if (this.y < 0) this.y = canvas.height;
-        if (this.y > canvas.height) this.y = 0;
+        if (this.x < 0) this.x = window.innerWidth;
+        if (this.x > window.innerWidth) this.x = 0;
+        if (this.y < 0) this.y = window.innerHeight;
+        if (this.y > window.innerHeight) this.y = 0;
     }
     
     draw() {
@@ -303,7 +316,7 @@ function startParticleAnimation() {
  */
 function stopParticleAnimation() {
     particles = [];
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 }
 
 /**
@@ -312,7 +325,7 @@ function stopParticleAnimation() {
 function animateParticles() {
     if (particles.length === 0) return;
     
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     
     particles.forEach(particle => {
         particle.update();
