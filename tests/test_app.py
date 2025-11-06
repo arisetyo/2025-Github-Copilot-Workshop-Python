@@ -48,3 +48,43 @@ def test_progress_post_invalid_data(client):
     response = client.post('/progress', json=post_data)
     assert response.status_code == 400
     assert 'error' in response.get_json()
+
+def test_settings_ui_present(client):
+    """
+    Test that the settings UI elements are present in the page
+    """
+    response = client.get('/')
+    assert response.status_code == 200
+    assert b'Settings' in response.data
+    assert b'work-duration' in response.data
+    assert b'break-duration' in response.data
+    assert b'theme-selector' in response.data
+    assert b'sound-enabled' in response.data
+
+def test_work_duration_options(client):
+    """
+    Test that work duration dropdown has all required options
+    """
+    response = client.get('/')
+    assert b'15 min' in response.data
+    assert b'25 min' in response.data
+    assert b'35 min' in response.data
+    assert b'45 min' in response.data
+
+def test_break_duration_options(client):
+    """
+    Test that break duration dropdown has all required options
+    """
+    response = client.get('/')
+    assert b'5 min' in response.data or b'5</option>' in response.data
+    assert b'10 min' in response.data or b'10</option>' in response.data
+    assert b'15 min' in response.data or b'15</option>' in response.data
+
+def test_theme_options(client):
+    """
+    Test that theme selector has all required options
+    """
+    response = client.get('/')
+    assert b'Light' in response.data
+    assert b'Dark' in response.data
+    assert b'Focus' in response.data
