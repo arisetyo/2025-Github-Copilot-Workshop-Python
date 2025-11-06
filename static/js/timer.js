@@ -23,6 +23,11 @@ let isRunning = false;
 let sessionsCompleted = 0;
 let focusTime = 0; // in seconds
 
+// Particles system state
+let particles = [];
+let canvas, ctx;
+const maxParticles = 50;
+
 /**
  * Initialize the timer and UI elements
  * - Set up event listeners
@@ -35,6 +40,7 @@ function initializeTimer() {
     loadProgressFromLocalStorage();
     document.getElementById('start-btn').addEventListener('click', handleStartButton);
     document.getElementById('reset-btn').addEventListener('click', handleResetButton);
+    initializeParticles();
 }
 
 /**
@@ -46,6 +52,9 @@ function initializeTimer() {
 function startTimer() {
     if (isRunning) return;
     isRunning = true;
+    document.querySelector('.container').classList.add('focus-mode');
+    startParticleAnimation();
+    
     timerInterval = setInterval(() => {
         if (timerRemaining > 0) {
             timerRemaining--;
@@ -54,6 +63,8 @@ function startTimer() {
         } else {
             clearInterval(timerInterval);
             isRunning = false;
+            document.querySelector('.container').classList.remove('focus-mode');
+            stopParticleAnimation();
             // Session complete logic
             sessionsCompleted++;
             focusTime += timerDuration;
@@ -74,6 +85,8 @@ function resetTimer() {
     clearInterval(timerInterval);
     timerRemaining = timerDuration;
     isRunning = false;
+    document.querySelector('.container').classList.remove('focus-mode');
+    stopParticleAnimation();
     updateTimerDisplay();
     updateProgressBar();
 }
@@ -89,12 +102,65 @@ function updateTimerDisplay() {
 
 /**
  * Update the circular progress bar based on remaining time
+ * Also update color gradient: blue → yellow → red
  */
 function updateProgressBar() {
-    const progressBar = document.getElementById('progress-bar');
-    const percent = 1 - timerRemaining / timerDuration;
-    // Simple circular progress using conic-gradient
-    progressBar.style.background = `conic-gradient(#7f7fd5 ${percent * 360}deg, #e0e0e0 0deg)`;
+    const progressBar = document.querySelector('.progress-fill');
+    const percent = timerRemaining / timerDuration;
+    const circumference = 2 * Math.PI * 90; // radius = 90
+    const offset = circumference * (1 - percent);
+    
+    progressBar.style.strokeDashoffset = offset;
+    
+    // Color gradient transition based on time remaining
+    let color;
+    if (percent > 0.66) {
+        // Blue phase (100% - 66%)
+        color = '#4a90e2';
+    } else if (percent > 0.33) {
+        // Yellow phase (66% - 33%)
+        const yellowProgress = (percent - 0.33) / 0.33;
+        color = interpolateColor('#4a90e2', '#f5a623', 1 - yellowProgress);
+    } else {
+        // Red phase (33% - 0%)
+        const redProgress = percent / 0.33;
+        color = interpolateColor('#f5a623', '#e74c3c', 1 - redProgress);
+    }
+    
+    progressBar.style.stroke = color;
+}
+
+/**
+ * Interpolate between two hex colors
+ */
+function interpolateColor(color1, color2, factor) {
+    const c1 = hexToRgb(color1);
+    const c2 = hexToRgb(color2);
+    
+    const r = Math.round(c1.r + factor * (c2.r - c1.r));
+    const g = Math.round(c1.g + factor * (c2.g - c1.g));
+    const b = Math.round(c1.b + factor * (c2.b - c1.b));
+    
+    return rgbToHex(r, g, b);
+}
+
+/**
+ * Convert hex color to RGB
+ */
+function hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+    } : null;
+}
+
+/**
+ * Convert RGB to hex color
+ */
+function rgbToHex(r, g, b) {
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
 }
 
 /**
@@ -169,4 +235,89 @@ function handleStartButton() {
 // Handle reset button click
 function handleResetButton() {
     resetTimer();
+}
+
+/**
+ * Initialize particle system
+ */
+function initializeParticles() {
+    canvas = document.getElementById('particles-canvas');
+    ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    // Resize canvas on window resize
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+}
+
+/**
+ * Particle class for animation
+ */
+class Particle {
+    constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.radius = Math.random() * 2 + 1;
+        this.opacity = Math.random() * 0.5 + 0.2;
+    }
+    
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        
+        // Wrap around edges
+        if (this.x < 0) this.x = canvas.width;
+        if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height;
+        if (this.y > canvas.height) this.y = 0;
+    }
+    
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+        ctx.fill();
+    }
+}
+
+/**
+ * Start particle animation
+ */
+function startParticleAnimation() {
+    // Create particles
+    particles = [];
+    for (let i = 0; i < maxParticles; i++) {
+        particles.push(new Particle());
+    }
+    
+    animateParticles();
+}
+
+/**
+ * Stop particle animation
+ */
+function stopParticleAnimation() {
+    particles = [];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+/**
+ * Animate particles
+ */
+function animateParticles() {
+    if (particles.length === 0) return;
+    
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    particles.forEach(particle => {
+        particle.update();
+        particle.draw();
+    });
+    
+    requestAnimationFrame(animateParticles);
 }
