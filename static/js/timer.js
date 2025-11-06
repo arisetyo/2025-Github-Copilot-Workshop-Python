@@ -23,6 +23,12 @@ let isRunning = false;
 let sessionsCompleted = 0;
 let focusTime = 0; // in seconds
 
+// User settings
+let workDuration = 25; // in minutes
+let breakDuration = 5; // in minutes
+let currentTheme = 'light';
+let soundEnabled = true;
+
 /**
  * Initialize the timer and UI elements
  * - Set up event listeners
@@ -30,11 +36,20 @@ let focusTime = 0; // in seconds
  * - Update UI displays
  */
 function initializeTimer() {
+    loadSettingsFromLocalStorage();
     updateTimerDisplay();
     updateProgressBar();
     loadProgressFromLocalStorage();
+    
+    // Timer button event listeners
     document.getElementById('start-btn').addEventListener('click', handleStartButton);
     document.getElementById('reset-btn').addEventListener('click', handleResetButton);
+    
+    // Settings event listeners
+    document.getElementById('work-duration').addEventListener('change', handleWorkDurationChange);
+    document.getElementById('break-duration').addEventListener('change', handleBreakDurationChange);
+    document.getElementById('theme-selector').addEventListener('change', handleThemeChange);
+    document.getElementById('sound-enabled').addEventListener('change', handleSoundToggle);
 }
 
 /**
@@ -46,6 +61,7 @@ function initializeTimer() {
 function startTimer() {
     if (isRunning) return;
     isRunning = true;
+    playSound('start');
     timerInterval = setInterval(() => {
         if (timerRemaining > 0) {
             timerRemaining--;
@@ -54,6 +70,7 @@ function startTimer() {
         } else {
             clearInterval(timerInterval);
             isRunning = false;
+            playSound('end');
             // Session complete logic
             sessionsCompleted++;
             focusTime += timerDuration;
@@ -169,4 +186,110 @@ function handleStartButton() {
 // Handle reset button click
 function handleResetButton() {
     resetTimer();
+}
+
+/**
+ * Handle work duration change
+ */
+function handleWorkDurationChange(event) {
+    workDuration = parseInt(event.target.value);
+    timerDuration = workDuration * 60;
+    resetTimer();
+    saveSettingsToLocalStorage();
+}
+
+/**
+ * Handle break duration change
+ */
+function handleBreakDurationChange(event) {
+    breakDuration = parseInt(event.target.value);
+    saveSettingsToLocalStorage();
+}
+
+/**
+ * Handle theme change
+ */
+function handleThemeChange(event) {
+    currentTheme = event.target.value;
+    applyTheme(currentTheme);
+    saveSettingsToLocalStorage();
+}
+
+/**
+ * Handle sound toggle
+ */
+function handleSoundToggle(event) {
+    soundEnabled = event.target.checked;
+    saveSettingsToLocalStorage();
+}
+
+/**
+ * Apply theme to the page
+ */
+function applyTheme(theme) {
+    document.body.classList.remove('light-theme', 'dark-theme', 'focus-theme');
+    document.body.classList.add(`${theme}-theme`);
+}
+
+/**
+ * Save settings to localStorage
+ */
+function saveSettingsToLocalStorage() {
+    localStorage.setItem('pomodoro_workDuration', workDuration);
+    localStorage.setItem('pomodoro_breakDuration', breakDuration);
+    localStorage.setItem('pomodoro_theme', currentTheme);
+    localStorage.setItem('pomodoro_soundEnabled', soundEnabled);
+}
+
+/**
+ * Load settings from localStorage
+ */
+function loadSettingsFromLocalStorage() {
+    workDuration = parseInt(localStorage.getItem('pomodoro_workDuration')) || 25;
+    breakDuration = parseInt(localStorage.getItem('pomodoro_breakDuration')) || 5;
+    currentTheme = localStorage.getItem('pomodoro_theme') || 'light';
+    soundEnabled = localStorage.getItem('pomodoro_soundEnabled') !== 'false';
+    
+    // Update UI to reflect loaded settings
+    document.getElementById('work-duration').value = workDuration;
+    document.getElementById('break-duration').value = breakDuration;
+    document.getElementById('theme-selector').value = currentTheme;
+    document.getElementById('sound-enabled').checked = soundEnabled;
+    
+    // Apply theme
+    applyTheme(currentTheme);
+    
+    // Update timer duration based on work duration
+    timerDuration = workDuration * 60;
+    timerRemaining = timerDuration;
+}
+
+/**
+ * Play sound effect
+ */
+function playSound(soundType) {
+    if (!soundEnabled) return;
+    
+    // Create audio context for simple beep sounds
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Different frequencies for different events
+    if (soundType === 'start') {
+        oscillator.frequency.value = 440; // A4
+    } else if (soundType === 'end') {
+        oscillator.frequency.value = 880; // A5
+    } else if (soundType === 'tick') {
+        oscillator.frequency.value = 220; // A3
+    }
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
 }
