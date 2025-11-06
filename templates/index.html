@@ -10,6 +10,17 @@
     <div class="container">
         <header>
             <h1>Pomodoro Timer</h1>
+            <!-- XP and Level Display -->
+            <div id="level-section">
+                <div class="level-info">
+                    <span id="level-display">Level 1</span>
+                    <span id="streak-display">🔥 0 days streak</span>
+                </div>
+                <div class="xp-bar-container">
+                    <div id="xp-bar" class="xp-bar"></div>
+                </div>
+                <div id="xp-text">0 / 100 XP</div>
+            </div>
         </header>
         <main>
             <div id="timer-section">
@@ -34,7 +45,50 @@
                     </div>
                 </div>
             </section>
+            
+            <!-- Achievements Section -->
+            <section id="achievements-section">
+                <h2>Achievements</h2>
+                <div id="achievements-container">
+                    <p class="loading-text">Complete your first Pomodoro to unlock achievements!</p>
+                </div>
+            </section>
+            
+            <!-- Statistics Section -->
+            <section id="statistics-section">
+                <h2>Statistics</h2>
+                <div class="stats-tabs">
+                    <button class="stat-tab active" data-tab="weekly">Weekly</button>
+                    <button class="stat-tab" data-tab="monthly">Monthly</button>
+                </div>
+                <div id="weekly-chart" class="chart-container">
+                    <canvas id="weekly-canvas"></canvas>
+                </div>
+                <div id="monthly-chart" class="chart-container" style="display: none;">
+                    <canvas id="monthly-canvas"></canvas>
+                </div>
+            </section>
         </main>
+    </div>
+    
+    <!-- Level Up Modal -->
+    <div id="level-up-modal" class="modal">
+        <div class="modal-content">
+            <h2>🎉 Level Up!</h2>
+            <p id="level-up-text">You've reached Level 2!</p>
+            <button id="close-modal-btn">Continue</button>
+        </div>
+    </div>
+    
+    <!-- Achievement Notification -->
+    <div id="achievement-notification" class="notification">
+        <div class="notification-content">
+            <span class="notification-icon">🏆</span>
+            <div class="notification-text">
+                <div class="notification-title"></div>
+                <div class="notification-description"></div>
+            </div>
+        </div>
     </div>
     
     <script src="/static/js/timer.js"></script>
