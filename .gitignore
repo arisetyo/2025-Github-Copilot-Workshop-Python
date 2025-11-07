@@ -1,3 +1,7 @@
 .venv/
 .pytest_cache/
 __pycache__/
+
+# User data files
+users_data.json
+analytics_data.json
