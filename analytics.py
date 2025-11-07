@@ -74,8 +74,9 @@ class Analytics:
                 start = datetime.fromisoformat(self.current_session.start_time)
                 end = datetime.fromisoformat(self.current_session.end_time)
                 self.current_session.duration_seconds = (end - start).total_seconds()
-            except (ValueError, TypeError):
-                # If timestamp parsing fails, use a default duration of 0
+            except (ValueError, TypeError) as e:
+                # If timestamp parsing fails, log the error and use 0 as fallback
+                print(f"Warning: Failed to parse session timestamps: {e}")
                 self.current_session.duration_seconds = 0.0
             
             # Save session

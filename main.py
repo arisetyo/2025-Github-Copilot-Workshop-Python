@@ -26,8 +26,11 @@ def main():
     username = "demo_player"
     password = "demo123"
     
-    if not auth.register(username, password):
-        print(f"  {i18n.t('user.register_failed')}")
+    # Try to register (may already exist from previous runs)
+    if auth.register(username, password):
+        print(f"  ✓ New user registered")
+    else:
+        print(f"  Note: {i18n.t('user.register_failed')}")
     
     print(f"\n{i18n.t('user.login')}...")
     if auth.login(username, password):

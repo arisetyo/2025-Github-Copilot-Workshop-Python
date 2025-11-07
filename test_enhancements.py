@@ -72,7 +72,10 @@ def test_analytics():
     assert data.total_games == 1, "Should track total games"
     assert data.total_recipes_completed == 2, "Should track total completed"
     assert data.total_recipes_failed == 1, "Should track total failed"
-    assert abs(data.success_rate - 66.67) < 0.1, "Should calculate success rate"
+    
+    # Calculate expected success rate: 2 completed / (2 completed + 1 failed) * 100 = 66.67%
+    expected_success_rate = (2 / 3) * 100
+    assert abs(data.success_rate - expected_success_rate) < 0.1, "Should calculate success rate correctly"
     
     # Cleanup
     if os.path.exists("test_analytics.json"):
