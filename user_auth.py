@@ -45,7 +45,13 @@ class UserAuth:
             json.dump(self.users, f, indent=2)
     
     def _hash_password(self, password: str, salt: Optional[str] = None) -> tuple[str, str]:
-        """Hash password using SHA256 with salt"""
+        """Hash password using SHA256 with salt
+        
+        Note: SHA256 with salt is used for this workshop project to avoid external dependencies.
+        For production systems, use dedicated password hashing algorithms like bcrypt, scrypt,
+        or Argon2, which are specifically designed to be computationally expensive and resistant
+        to brute-force attacks.
+        """
         if salt is None:
             salt = secrets.token_hex(16)
         
