@@ -1,6 +1,8 @@
 """User Authentication System for Kitchen Game"""
 import json
 import hashlib
+import hmac
+import secrets
 import os
 from typing import Optional, Dict
 from dataclasses import dataclass, asdict
@@ -42,18 +44,37 @@ class UserAuth:
         with open(self.data_file, 'w') as f:
             json.dump(self.users, f, indent=2)
     
-    def _hash_password(self, password: str) -> str:
-        """Hash password using SHA256"""
-        return hashlib.sha256(password.encode()).hexdigest()
+    def _hash_password(self, password: str, salt: Optional[str] = None) -> tuple[str, str]:
+        """Hash password using SHA256 with salt"""
+        if salt is None:
+            salt = secrets.token_hex(16)
+        
+        password_hash = hashlib.sha256((password + salt).encode()).hexdigest()
+        return password_hash, salt
+    
+    def _validate_credentials(self, username: str, password: str) -> bool:
+        """Validate username and password inputs"""
+        if not username or not password:
+            return False
+        if not username.strip() or not password.strip():
+            return False
+        if len(username) > 100 or len(password) > 100:
+            return False
+        return True
     
     def register(self, username: str, password: str) -> bool:
         """Register a new user"""
+        if not self._validate_credentials(username, password):
+            return False
+        
         if username in self.users:
             return False
         
+        password_hash, salt = self._hash_password(password)
         now = datetime.now().isoformat()
         self.users[username] = {
-            "password_hash": self._hash_password(password),
+            "password_hash": password_hash,
+            "salt": salt,
             "progress": asdict(UserProgress(
                 username=username,
                 created_at=now,
@@ -65,11 +86,18 @@ class UserAuth:
     
     def login(self, username: str, password: str) -> bool:
         """Authenticate user"""
+        if not self._validate_credentials(username, password):
+            return False
+        
         if username not in self.users:
             return False
         
-        password_hash = self._hash_password(password)
-        if self.users[username]["password_hash"] != password_hash:
+        stored_hash = self.users[username]["password_hash"]
+        salt = self.users[username].get("salt", "")
+        password_hash, _ = self._hash_password(password, salt)
+        
+        # Use constant-time comparison to prevent timing attacks
+        if not hmac.compare_digest(password_hash, stored_hash):
             return False
         
         self.current_user = username

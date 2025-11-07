@@ -69,10 +69,14 @@ class Analytics:
         if self.current_session:
             self.current_session.end_time = datetime.now().isoformat()
             
-            # Calculate duration
-            start = datetime.fromisoformat(self.current_session.start_time)
-            end = datetime.fromisoformat(self.current_session.end_time)
-            self.current_session.duration_seconds = (end - start).total_seconds()
+            # Calculate duration with error handling
+            try:
+                start = datetime.fromisoformat(self.current_session.start_time)
+                end = datetime.fromisoformat(self.current_session.end_time)
+                self.current_session.duration_seconds = (end - start).total_seconds()
+            except (ValueError, TypeError):
+                # If timestamp parsing fails, use a default duration of 0
+                self.current_session.duration_seconds = 0.0
             
             # Save session
             self.sessions.append(asdict(self.current_session))
